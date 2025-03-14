@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <odoo>
+        <record id="view_easy_jsonapi_doc_list" model="ir.ui.view">
+            <field name="name">easy.jsonapi.doc.list</field>
+            <field name="model">easy.jsonapi.doc</field>
+            <field name="arch" type="xml">
+                <list string="Json Api Doc">
+                    <field name="name"/>
+                    <field name="easy_api_id"/>
+                    <field name="model_ids"/>
+                </list>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_easy_jsonapi_doc_form">
+            <field name="name">easy.jsonapi.doc.form</field>
+            <field name="model">easy.jsonapi.doc</field>
+            <field name="priority" eval="15"/>
+            <field name="arch" type="xml">
+                <form string="easy_api" create="false" class="jsonapi-doc">
+                    <div style="height: 50px; padding: 10px; width: 100%;">
+                        <field name="model_ids" widget="many2many_tags" placeholder="Choose Models" style="border-bottom: 1px solid #ccc;"/>
+                    </div>
+                    <field name="doc_iframe"/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Main Action: easy.jsonapi.doc -->
+        <record id="action_easy_jsonapi_doc" model="ir.actions.act_window">
+            <field name="name">JSON API MAIN DOC</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">easy.jsonapi.doc</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            </p>
+            </field>
+        </record>
+        <!-- Sub Action Form: easy.jsonapi.doc -->
+        <record id="action_easy_jsonapi_doc_view_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="3"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_easy_jsonapi_doc_form"/>
+            <field name="act_window_id" ref="action_easy_jsonapi_doc"/>
+        </record>
+        <!-- Sub Action list: easy.jsonapi.doc -->
+        <record id="action_easy_jsonapi_doc_view_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_easy_jsonapi_doc_list"/>
+            <field name="act_window_id" ref="action_easy_jsonapi_doc"/>
+        </record>
+
+    </odoo>
+</data>

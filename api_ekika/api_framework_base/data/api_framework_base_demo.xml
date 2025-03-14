@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ekika_utils.user_ekadmin" model="res.users">
+            <field name="groups_id" eval="[(4, ref('api_framework_base.group_api_administrator'))]"/>
+        </record>
+        <record id="base.user_demo" model="res.users">
+            <field name="groups_id" eval="[(4, ref('api_framework_base.group_api_administrator'))]"/>
+        </record>
+    </data>
+</odoo>
