@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<template>
+
+    <t t-name="ekika_widgets.CenterTag">
+        <div class="center_block">
+            <div t-att-class="classes">
+                <t t-esc="props.title " />
+            </div>
+        </div>
+    </t>
+
+</template>

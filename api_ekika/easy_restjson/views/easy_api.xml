@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="easy_api_restjson_inherit" model="ir.ui.view">
+        <field name="name">easy.api.restjson.inherit</field>
+        <field name="model">easy.api</field>
+        <field name="priority" eval="5"/>
+        <field name="inherit_id" ref="api_framework_base.view_easy_api_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="open_easy_restjson_doc" type="object" class="oe_stat_button" icon="fa-book"
+                invisible="api_type != 'rest_json'">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">RestJson</span>
+                        <span class="o_stat_text">Doc</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='page_size']" position="attributes">
+                <attribute name="invisible">state == 'draft' or api_type == 'rest_json'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

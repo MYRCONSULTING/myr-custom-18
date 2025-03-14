@@ -1,0 +1,11 @@
+.jsonapi-doc {
+    .o_form_nosheet {
+        padding: 0;
+        height: 100%;
+        .o_readonly {
+            height: 100%;
+            border: 1px solid #ccc;
+            margin: 0 10px;
+        }
+    }
+}

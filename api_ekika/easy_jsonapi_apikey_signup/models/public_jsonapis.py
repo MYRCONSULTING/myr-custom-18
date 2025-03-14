@@ -1,0 +1,153 @@
+# -*- coding: utf-8 -*-
+######################################################################
+#                                                                    #
+# Part of EKIKA CORPORATION PRIVATE LIMITED (Website: ekika.co).     #
+# See LICENSE file for full copyright and licensing details.         #
+#                                                                    #
+######################################################################
+
+from base64 import b64encode
+from dateutil.relativedelta import relativedelta
+from odoo import models
+from odoo.fields import Datetime
+from odoo.http import request
+
+
+class AuthSignUpJsonAPIKey(models.AbstractModel):
+    _inherit = 'easy.jsonapi.key.public.methods'
+
+    @classmethod
+    def allowed_public(cls):
+        res = super().allowed_public()
+        res.extend(['signup', 'signin', 'changepasswd', 'signout'])
+        return res
+
+    @classmethod
+    def signup(cls, query, response):
+        data = request.get_json_data()
+
+        # Signup Must Require login, name and password as data in body.
+        if not all([x in data and data[x] for x in ['login', 'name', 'password']]):
+            raise Exception("Invalid Use of Method.")
+
+        login, passwd = request.env['res.users'].sudo().signup({
+            'login': data['login'],
+            'name': data['name'],
+            'password': data['password'],
+        })
+        request.env.cr.commit()     # as authenticate will use its own cursor we need to commit the current transaction
+        credential = {'login': data.get('login'), 'password': data.get('password'), 'type': 'password'}
+        auth_info = request.session.authenticate(request.db, credential)
+        pre_uid = auth_info.get('uid')
+        if not pre_uid:
+            raise Exception('Authentication Failed.')
+
+        api_key = cls.get_new_api_key(pre_uid)
+
+        response.jsonapi_data = {
+            'result': 'Signup Successful',
+            'api_key': api_key.apikey,
+            'user_id': pre_uid
+        }
+        return response
+
+    @classmethod
+    def get_new_api_key(cls, user_id):
+        new_api_key = request.env['api.auth.apikey'].sudo().create({
+            'easy_api_id': request.easyapi['record'].id,
+            'user_id': user_id,
+            'expiry': Datetime.now() + relativedelta(days=request.easyapi['record'].public_jsonapi_key_expiry),
+            'api_key_choice': 'auto',
+        })
+        return new_api_key
+
+    @classmethod
+    def signin(cls, query, response):
+        data = request.get_json_data()
+        # Signup Must Require login, name and password as data in body.
+        if not all([x in data and data[x] for x in ['login', 'password']]):
+            raise Exception("Invalid Use of Method.")
+        credential = {'login': data.get('login'), 'password': data.get('password'), 'type': 'password'}
+        auth_info = request.session.authenticate(request.db, credential)
+        pre_uid = auth_info.get('uid')
+        if not pre_uid:
+            raise Exception('Authentication Failed.')
+        api_key = cls.get_user_api_key(pre_uid)
+        if not api_key:
+            raise Exception('Authentication Failed.')
+        response.jsonapi_data = {
+            'result': 'Login Successful',
+            'api_key': api_key.apikey,
+            'user_id': pre_uid
+        }
+        return response
+
+    @classmethod
+    def get_user_api_key(cls, user_id):
+        api_key = request.easyapi['record'].api_key_ids.filtered_domain(
+            [('user_id', '=', user_id)])
+        if not api_key:
+            api_key = cls.get_new_api_key(user_id)
+            return api_key
+        api_key = api_key.sorted('expiry', True)
+        api_key = api_key[0]
+        cls.update_api_key_expiry(api_key)
+        return api_key
+
+    @classmethod
+    def update_api_key_expiry(cls, api_key):
+        api_key.write({'expiry': Datetime.now() + relativedelta(days=request.easyapi['record'].public_jsonapi_key_expiry)})
+
+    @classmethod
+    def changepasswd(cls, query, response):
+        data = request.get_json_data()
+        # Signup Must Require login, name and password as data in body.
+        if not all([x in data and data[x] for x in ['login', 'password', 'new_password']]):
+            raise Exception("Invalid Use of Method.")
+        login = data['login']
+        passwd = data['password']
+        new_passwd = data['new_password']
+        credential = {'login': login, 'password': passwd, 'type': 'password'}
+        auth_info = request.session.authenticate(request.db, credential)
+        pre_uid = auth_info.get('uid')
+        if not pre_uid:
+            raise Exception('Authentication Failed.')
+        the_user = request.env['res.users'].browse(pre_uid)
+        the_user.change_password(passwd, new_passwd)
+        request.env.cr.commit()
+        credential = {'login': login, 'password': new_passwd, 'type': 'password'}
+        auth_info = request.session.authenticate(request.db, credential)
+        pre_uid = auth_info.get('uid')
+        if not pre_uid:
+            raise Exception('Unable to change password of the user.')
+        api_key = cls.get_user_api_key(pre_uid)
+        response.jsonapi_data = {
+            'result': 'Password Update Successful',
+            'api_key': api_key[0].apikey,
+            'user_id': pre_uid
+        }
+        return response
+
+    @classmethod
+    def signout(cls, query, response):
+        data = request.get_json_data()
+        # Signup Must Require login, name and password as data in body.
+        if not all([x in data and data[x] for x in ['user_id']]):
+            raise Exception("Invalid Use of Method.")
+        user = request.env['res.users'].sudo().search([('id', '=', int(data['user_id']))])
+        if not user:
+            raise Exception("User Not Found")
+        cls.remove_user_api_key(user.id)
+        response.jsonapi_data = {
+            'result': 'Signout Successfully',
+            'user_id': user.id
+        }
+        return response
+
+    @classmethod
+    def remove_user_api_key(cls, user_id):
+        api_key = request.easyapi['record'].api_key_ids.filtered_domain(
+            [('user_id', '=', user_id)])
+        if not api_key:
+            return
+        api_key.unlink()

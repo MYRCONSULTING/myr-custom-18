@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="easy_restjson.RestJsonSwaggerDocViewClient" owl="1">
+        <div class="h-100 easy-restjson-swagger-doc">
+            <iframe t-att-src="'/swagger/restjson/' + apiBaseEndpoint" title="Doc Viewer" class="w-100 h-100"/>
+        </div>
+    </t>
+
+</templates>

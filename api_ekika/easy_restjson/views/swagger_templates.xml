@@ -1,0 +1,27 @@
+<odoo>
+    <template id="easy_restjson.swagger_template" name="Swagger UI">
+        <!-- <t t-call="web.frontend_layout"> -->
+            <div class="container">
+                <div id="swagger-ui"></div>
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-bundle.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-standalone-preset.min.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui.min.css" />
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const swaggerSchema = <t t-raw="swagger_json" />; // Render the JSON string as a JS object
+                    const ui = SwaggerUIBundle({
+                        spec: swaggerSchema,  // Use the inline schema instead of a URL
+                        dom_id: '#swagger-ui',
+                        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'],
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        layout: "BaseLayout"
+                    });
+                });
+            </script>
+        <!-- </t> -->
+    </template>
+</odoo>
